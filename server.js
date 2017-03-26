@@ -3,10 +3,17 @@ var express = require('express');
 var app = express();
 var passport = require('passport');
 var bodyParser = require('body-parser');
+var expressSession = require('express-session');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(expressSession({ secret: 'thisIsASecret', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+    done(null, user.username);
+});
 
 passport.use(new LocalStrategy(function(username, password, done) {
     if ((username === "John") && (password === "password")) {
@@ -26,8 +33,7 @@ app.get('/login', function(req, res) {
 
 app.post('/login', passport.authenticate('local', {
     successRedirect: '/success',
-    failureRedirect: '/login',
-    session: false
+    failureRedirect: '/login'
 }));
 
 app.listen(8000, function() {
